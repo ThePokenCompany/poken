@@ -5,36 +5,21 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 
 abstract contract ReducingTaxToken is ERC20Burnable, Ownable {
-    uint256 percentSupply75;
-    uint256 percentSupply50;
-    address public burnAccount = 0x000000000000000000000000000000000000dEaD;
+
+    uint256 burnRateBIPS;
     address public charityAccount;
+    address public burnAccount = 0x000000000000000000000000000000000000dEaD;
 
     mapping (address => bool) public isExemptFromFee;
 
-    constructor(uint256 _initialSupply, address _charityAccount) {
-        percentSupply75 = (_initialSupply * 3) / 4; // 75% of the initial supply
-        percentSupply50 = _initialSupply / 2; // 50% of the initial supply
+    constructor(uint256 _initialBurnRateBIPS, address _charityAccount) {
+        burnRateBIPS = _initialBurnRateBIPS;
         charityAccount = _charityAccount;
         isExemptFromFee[owner()] = true;
     }
 
     function calculateBurnFee(uint256 amount) public view returns (uint256) {
-        uint256 circulatingSupply = totalSupply() - balanceOf(burnAccount);
-        uint256 burnAmount;
-
-        if (circulatingSupply > percentSupply75) {
-            // burn 1%
-            burnAmount = amount/100;
-        } else if(circulatingSupply > percentSupply50) {
-            // burn 0.5%
-            burnAmount = amount/200;
-            uint256 availableBurn = circulatingSupply - percentSupply50;
-            if (burnAmount > availableBurn) {
-                burnAmount = availableBurn;
-            }
-        }
-        return burnAmount;
+        return (amount*burnRateBIPS)/10000;
     }
 
     function calculateCharityFee(uint256 amount) public pure returns (uint256) {
@@ -73,6 +58,11 @@ abstract contract ReducingTaxToken is ERC20Burnable, Ownable {
         }
 
         return true;
+    }
+
+    function setburnRateBIPS(uint256 _newburnRateBIPS) external onlyOwner {
+        require(_newburnRateBIPS <= 100, "RTT: Burn rate too high");
+        burnRateBIPS = _newburnRateBIPS;
     }
 
     function addFeeExemption(address user) external onlyOwner {
@@ -156,7 +146,7 @@ contract Poken is AntiWhaleToken {
 
     constructor(address _charityWallet)
         ERC20("Poken", "PKN") 
-        ReducingTaxToken(initialSupply, _charityWallet)
+        ReducingTaxToken(100, _charityWallet)
         AntiWhaleToken(
             (initialSupply * 50) / 10000,
             (initialSupply * 25) / 10000,
