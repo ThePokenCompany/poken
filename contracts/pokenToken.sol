@@ -72,6 +72,10 @@ abstract contract ReducingTaxToken is ERC20Burnable, Ownable {
     function removeFeeExemption(address user) external onlyOwner {
         isExemptFromFee[user] = false;
     }
+
+    function updateChairityAccount(address _newChairityAccount) external onlyOwner {
+        charityAccount = _newChairityAccount;
+    }   
 }
 
 abstract contract AntiWhaleToken is ReducingTaxToken {
