@@ -146,7 +146,7 @@ abstract contract AntiWhaleToken is ReducingTaxToken {
 
 contract Poken is AntiWhaleToken {
 
-    uint256 initialSupply = 5000000000 * 10**9;
+    uint256 initialSupply = 5000000000 * 10**18;
 
     constructor(address _charityWallet)
         ERC20("Poken", "PKN") 
@@ -160,6 +160,6 @@ contract Poken is AntiWhaleToken {
     }
 
     function decimals() public pure override returns (uint8) {
-        return 9;
+        return 18;
     }
 }
